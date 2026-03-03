@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Calendar & Auth System</title>
+    <style>
+        :root {
+            /* Basic Theme */
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --primary-light: #e0f2fe;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --danger-color: #f43f5e;
+            --success-color: #10b981;
+
+            /* Shadows & Radius */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius-lg: 16px;
+            --radius-md: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 32px 20px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Layouts */
+        .login-wrapper {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e2a3a 0%, #0f1923 40%, #1a1225 100%);
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Animated background orbs */
+        .login-wrapper::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.18) 0%, transparent 70%);
+            top: -150px;
+            left: -150px;
+            border-radius: 50%;
+            animation: orb1 8s ease-in-out infinite alternate;
+        }
+
+        .login-wrapper::after {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(180, 130, 50, 0.15) 0%, transparent 70%);
+            bottom: -100px;
+            right: -100px;
+            border-radius: 50%;
+            animation: orb2 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes orb1 {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(60px, 40px) scale(1.1);
+            }
+        }
+
+        @keyframes orb2 {
+            from {
+                transform: translate(0, 0) scale(1);
+            }
+
+            to {
+                transform: translate(-50px, -30px) scale(1.15);
+            }
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 40px 36px 36px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: cardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        @keyframes cardIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Logo area */
+        .login-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .login-logo-img {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .login-logo-img:hover {
+            transform: scale(1.08);
+        }
+
+        .login-logo-divider {
+            width: 1px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .login-brand {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .login-brand h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .login-brand p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* Login form overrides for dark card */
+        .login-card .form-group label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .login-card .form-group input {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .login-card .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .login-card .form-group input:focus {
+            border-color: rgba(220, 38, 38, 0.6);
+            background: rgba(255, 255, 255, 0.12);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+        }
+
+        .login-card .alert.error {
+            background: rgba(220, 38, 38, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        .login-card .alert.success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .login-submit-btn {
+            width: 100%;
+            padding: 13px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-top: 12px;
+            border-radius: 10px;
+            border: none;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(220, 38, 38, 0.35);
+            letter-spacing: 0.3px;
+        }
+
+        .login-submit-btn:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45);
+        }
+
+        .login-submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .layout-wrapper {
+            display: flex;
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* Buttons */
+        button {
+            padding: 8px 16px;
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+        }
+
+        button:hover {
+            background-color: var(--bg-color);
+            border-color: #cbd5e1;
+        }
+
+        button:disabled {
+            background-color: #e2e8f0;
+            cursor: not-allowed;
+            color: var(--text-muted);
+        }
+
+        button.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        button.primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        button.danger {
+            background-color: white;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+        }
+
+        button.danger:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-block {
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .alert.error {
+            background: #ffe4e6;
+            color: #e11d48;
+            display: block;
+        }
+
+        .alert.success {
+            background: #d1fae5;
+            color: #059669;
+            display: block;
+        }
+
+        /* Main Content & Sidebar (Calendar) */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 32px;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar {
+            width: 330px;
+            flex-shrink: 0;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: 28px;
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 32px;
+            max-height: calc(100vh - 64px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto 24px auto;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            text-transform: uppercase;
+        }
+
+        /* Calendar Grid */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .weekday-header {
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-muted);
+            padding: 10px 0;
+            font-size: 13px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1 / 1;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .day-cell:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 1px var(--primary-color);
+        }
+
+        .day-cell.empty {
+            border-color: transparent;
+            cursor: default;
+        }
+
+        .day-cell.empty:hover {
+            box-shadow: none;
+        }
+
+        .day-cell.today {
+            background-color: #f0f9ff;
+            border-color: #bae6fd;
+        }
+
+        .day-number {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .day-cell.today .day-number {
+            color: var(--primary-color);
+        }
+
+        .task-icons {
+            margin-top: auto;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            width: 100%;
+        }
+
+        .task-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* User Avatar Logo */
+        .user-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            font-size: 9px;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+            letter-spacing: 0;
+            border: 1.5px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            line-height: 1;
+        }
+
+        .user-logo-sm {
+            width: 22px;
+            height: 22px;
+            font-size: 10px;
+        }
+
+        .user-logo-md {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 800;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-entry {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .creator-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .sidebar h2 {
+            font-size: 18px;
+            font-weight: 700;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-list {
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            align-items: flex-start;
+        }
+
+        .sidebar-date {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-task-title {
+            font-weight: 600;
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--text-main);
+        }
+
+        .badge-type {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            width: max-content;
+        }
+
+        .badge-type svg {
+            width: 12px;
+            height: 12px;
+            margin-right: 4px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 460px;
+            padding: 28px;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            transform: translateY(10px);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 26px;
+            cursor: pointer;
+            color: var(--text-muted);
+        }
+
+        .task-list {
+            list-style: none;
+            max-height: 280px;
+            overflow-y: auto;
+            margin-bottom: 24px;
+            padding-right: 4px;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: 10px;
+        }
+
+        .add-task-form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .add-task-form input {
+            flex: 1;
+        }
+
+        .empty-text {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px 0;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        /* Color Picker Swatches */
+        .color-swatches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.15);
+        }
+
+        .color-swatch.selected {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #0f172a;
+            transform: scale(1.1);
+        }
+
+        .avatar-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-color);
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .avatar-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 800;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: background 0.2s;
+        }
+
+        .avatar-preview-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        @media (max-width: 960px) {
+            .layout-wrapper {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: static;
+                max-height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. 登录界面 -->
+    <div id="login-view" class="login-wrapper">
+        <div class="login-card">
+            <!-- 公司 Logo -->
+            <div class="login-logos">
+                <img src="icon/Jaya.jpg" alt="Jaya Logo" class="login-logo-img">
+                <div class="login-logo-divider"></div>
+                <img src="icon/Uniang.jpg" alt="Uniang Logo" class="login-logo-img">
+            </div>
+            <!-- 品牌标题 -->
+            <div class="login-brand">
+                <h1>HR Task Calendar</h1>
+                <p>Human Resource Management System</p>
+            </div>
+            <div id="login-alert" class="alert"></div>
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" id="login-userid" required placeholder="Enter your user ID"
+                        autocomplete="username">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>Password</label>
+                    <input type="password" id="login-password" required placeholder="Enter password"
+                        autocomplete="current-password">
+                </div>
+                <button type="submit" id="login-btn" class="login-submit-btn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. 登录后的主应用界面 (包含日历) -->
+    <div id="app-view" class="hidden">
+
+        <!-- 顶部导航栏 (用户信息 & 操作) -->
+        <div class="top-nav">
+            <div class="user-profile">
+                <span id="welcome-name" style="font-weight: 600; font-size: 16px;">Loading...</span>
+                <span id="welcome-role" class="role-badge">ROLE</span>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <!-- 只有 SADMIN 才能看到这个按钮 -->
+                <button id="btn-create-account" class="primary hidden" onclick="openCreateUserModal()">+ Create
+                    Account</button>
+                <button class="danger" onclick="handleLogout()">Log Out</button>
+            </div>
+        </div>
+
+        <!-- 日历主体 -->
+        <div class="layout-wrapper">
+            <div class="main-content">
+                <div class="header">
+                    <h1 id="current-title">March 2026</h1>
+                    <div class="controls">
+                        <button onclick="changeDate(-1)">Prev</button>
+                        <button onclick="changeDate(1)">Next</button>
+                        <button class="primary" onclick="goToToday()">This Month</button>
+                    </div>
+                </div>
+
+                <div class="month-grid">
+                    <div class="weekday-header">Mon</div>
+                    <div class="weekday-header">Tue</div>
+                    <div class="weekday-header">Wed</div>
+                    <div class="weekday-header">Thu</div>
+                    <div class="weekday-header">Fri</div>
+                    <div class="weekday-header">Sat</div>
+                    <div class="weekday-header">Sun</div>
+                    <div id="calendar-days" style="display: contents;"></div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <h2>
+                    <span id="sidebar-title">Tasks Overview</span>
+                    <span id="sidebar-count"
+                        style="font-size: 13px; color: var(--text-muted); font-weight: 500;"></span>
+                </h2>
+                <div class="sidebar-list" id="sidebar-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 添加/编辑任务弹窗 -->
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-date-title">Date</div>
+                <button class="close-btn" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <ul class="task-list" id="task-list"></ul>
+            <div class="add-task-form">
+                <input type="text" id="new-task-title" placeholder="Enter task name...">
+                <select id="new-task-type">
+                    <option value="Work">Work</option>
+                    <option value="Alert">Alert</option>
+                    <option value="Public Holiday">Public Holiday</option>
+                    <option value="On leave">On leave</option>
+                </select>
+                <button class="primary" onclick="addTask()">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 创建新用户弹窗 (仅 SADMIN 可用) -->
+    <div class="modal-overlay" id="user-modal">
+        <div class="modal" style="max-height:90vh;overflow-y:auto;">
+            <div class="modal-header">
+                <div class="modal-title">Create New Account</div>
+                <button class="close-btn" onclick="closeCreateUserModal()">&times;</button>
+            </div>
+            <div id="create-alert" class="alert"></div>
+            <form onsubmit="handleCreateUser(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="new-name" required placeholder="John Doe" oninput="updateAvatarPreview()">
+                </div>
+                <div class="form-group">
+                    <label>User ID <span
+                            style="font-size:11px;color:var(--text-muted);font-weight:400;">（登录用，只能英文/数字/下划线）</span></label>
+                    <input type="text" id="new-userid" required placeholder="e.g. john_01" pattern="[A-Za-z0-9_]+"
+                        title="Only letters, numbers and underscores">
+                </div>
+                <div class="form-group">
+                    <label>Email Address <span style="font-size:11px;color:var(--text-muted);font-weight:400;">（Firebase
+                            用，用户不需要知道）</span></label>
+                    <input type="email" id="new-email" required placeholder="user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="new-password" required placeholder="Min 6 characters">
+                </div>
+                <div class="form-group">
+                    <label>Assign Role</label>
+                    <select id="new-role" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                        <option value="sadmin">Super Admin (sadmin)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Avatar Color</label>
+                    <div class="color-swatches" id="color-swatches"></div>
+                    <div class="avatar-preview-row">
+                        <div class="avatar-preview" id="avatar-preview">?</div>
+                        <span class="avatar-preview-name" id="avatar-preview-name">Enter a name above</span>
+                    </div>
+                </div>
+                <button type="submit" id="create-btn" class="primary btn-block">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword }
+            from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getDatabase, ref, onValue, set, get }
+            from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+        // 🔴 你的 Firebase 配置
+        const firebaseConfig = {
+            apiKey: "AIzaSyAIJCWo-72VCGv0_uCpZw8r-7cj5VPQ0Kk",
+            authDomain: "task-calendar-a76f2.firebaseapp.com",
+            databaseURL: "https://task-calendar-a76f2-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "task-calendar-a76f2",
+            storageBucket: "task-calendar-a76f2.firebasestorage.app",
+            messagingSenderId: "986251813351",
+            appId: "1:986251813351:web:1dbeba76488d98369f5d42",
+            measurementId: "G-J06R98NS04"
+        };
+
+        // 初始化 Firebase (Main App)
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        // 初始化 Firebase (Secondary App - 专门用来创建账号而不挤掉主账号)
+        const secondaryApp = initializeApp(firebaseConfig, "SecondaryApp");
+        const secondaryAuth = getAuth(secondaryApp);
+
+        // 全局变量
+        let currentUser = null;
+        let currentUserData = null;
+        let tasksData = {};
+        let usersMap = {};   // uid -> { name, initials, color }
+        let currentDate = new Date();
+        let selectedDateStr = '';
+
+        // 为用户生成固定颜色（基于uid字符串hash）
+        const USER_COLORS = [
+            '#0284c7', '#7c3aed', '#db2777', '#059669', '#d97706',
+            '#dc2626', '#2563eb', '#0891b2', '#65a30d', '#9333ea'
+        ];
+        function getUserColor(uid) {
+            let hash = 0;
+            for (let i = 0; i < uid.length; i++) hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+            return USER_COLORS[Math.abs(hash) % USER_COLORS.length];
+        }
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+            return name.slice(0, 2).toUpperCase();
+        }
+        function getUserLogo(uid, sizeClass = '') {
+            const u = usersMap[uid];
+            if (!u) return '';
+            return `<span class="user-logo ${sizeClass}" style="background:${u.color}" title="${escapeHTML(u.name)}">${escapeHTML(u.initials)}</span>`;
+        }
+
+        // 日历相关配置
+        const TASK_TYPES = {
+            'Work': { color: '#0284c7', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>` },
+            'Alert': { color: '#ea580c', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>` },
+            'Public Holiday': { color: '#ef4444', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>` },
+            'On leave': { color: '#10b981', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>` }
+        };
+        const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        // ==================
+        // 1. 身份验证逻辑
+        // ==================
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('app-view').classList.remove('hidden');
+
+                // 获取数据库中的用户信息 (角色, 姓名)
+                const userRef = ref(db, 'users/' + user.uid);
+                const snapshot = await get(userRef);
+                if (snapshot.exists()) {
+                    currentUserData = snapshot.val();
+                    document.getElementById('welcome-name').textContent = `Hi, ${currentUserData.name}`;
+                    document.getElementById('welcome-role').textContent = currentUserData.role;
+                    // 如果是超级管理员(sadmin)，显示创建账号按钮
+                    if (currentUserData.role === 'sadmin') {
+                        document.getElementById('btn-create-account').classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-create-account').classList.add('hidden');
+                    }
+                } else {
+                    // 数据库里没有该用户记录时的兜底处理
+                    document.getElementById('welcome-name').textContent = `Hi, ${user.email}`;
+                    document.getElementById('welcome-role').textContent = 'user';
+                    document.getElementById('btn-create-account').classList.add('hidden');
+                }
+
+                // 加载所有用户到 usersMap
+                await loadAllUsers();
+
+                // 开始实时监听日历任务数据
+                loadCalendarTasks();
+            } else {
+                currentUser = null;
+                currentUserData = null;
+                usersMap = {};
+                document.getElementById('login-view').classList.remove('hidden');
+                document.getElementById('app-view').classList.add('hidden');
+                document.getElementById('login-form').reset();
+            }
+        });
+
+        // 从 Firebase 加载所有用户信息
+        async function loadAllUsers() {
+            try {
+                const usersRef = ref(db, 'users');
+                const snap = await get(usersRef);
+                usersMap = {};
+                if (snap.exists()) {
+                    snap.forEach(child => {
+                        const uid = child.key;
+                        const data = child.val();
+                        usersMap[uid] = {
+                            name: data.name || data.email || uid,
+                            initials: getInitials(data.name || data.email || uid),
+                            // 优先使用数据库存储的颜色，否则自动hash
+                            color: data.color || getUserColor(uid)
+                        };
+                    });
+                }
+            } catch (e) { console.warn('Could not load users:', e); }
+        }
+
+        // ==================
+        // 颜色选择器初始化
+        // ==================
+        const AVATAR_COLORS = [
+            '#e53935', // 红
+            '#e67e22', // 橙
+            '#f1c40f', // 黄
+            '#27ae60', // 绿
+            '#16a085', // 深青
+            '#2980b9', // 蓝
+            '#1a237e', // 深蓝
+            '#8e44ad', // 紫
+            '#d81b60', // 粉红
+            '#6d4c41', // 棕
+            '#546e7a', // 蓝灰
+            '#00897b', // 翠绿
+        ];
+        let selectedAvatarColor = AVATAR_COLORS[0];
+
+        function initColorSwatches() {
+            const container = document.getElementById('color-swatches');
+            container.innerHTML = '';
+            AVATAR_COLORS.forEach((color, i) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'color-swatch' + (i === 0 ? ' selected' : '');
+                swatch.style.background = color;
+                swatch.title = color;
+                swatch.addEventListener('click', () => {
+                    selectedAvatarColor = color;
+                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                    swatch.classList.add('selected');
+                    updateAvatarPreview();
+                });
+                container.appendChild(swatch);
+            });
+        }
+
+        window.updateAvatarPreview = function () {
+            const name = document.getElementById('new-name').value.trim();
+            const initials = getInitials(name) || '?';
+            const preview = document.getElementById('avatar-preview');
+            const label = document.getElementById('avatar-preview-name');
+            preview.textContent = initials;
+            preview.style.background = selectedAvatarColor;
+            label.textContent = name || 'Enter a name above';
+        };
+
+        window.handleLogin = async (e) => {
+            e.preventDefault();
+            const userid = document.getElementById('login-userid').value.trim();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true; btn.textContent = 'Logging in...';
+
+            try {
+                // 第一步：从 usernames 节点查找对应的 email
+                const usernameRef = ref(db, 'usernames/' + userid);
+                const usernameSnap = await get(usernameRef);
+                if (!usernameSnap.exists()) {
+                    throw new Error('User ID not found. Please check your ID.');
+                }
+                const email = usernameSnap.val();
+
+                // 第二步：用找到的 email 登录
+                await signInWithEmailAndPassword(auth, email, password);
+                showAlert('login-alert', '', false);
+            } catch (error) {
+                const msg = error.message.includes('wrong-password') || error.message.includes('invalid-credential')
+                    ? 'Incorrect password. Please try again.'
+                    : error.message;
+                showAlert('login-alert', msg, 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Sign In';
+            }
+        };
+
+        window.handleLogout = async () => { await signOut(auth); };
+
+        // ==================
+        // 2. SADMIN 创建账号逻辑
+        // ==================
+        window.openCreateUserModal = () => {
+            document.getElementById('user-modal').classList.add('active');
+            // 重置颜色选择
+            selectedAvatarColor = AVATAR_COLORS[0];
+            initColorSwatches();
+            updateAvatarPreview();
+        };
+        window.closeCreateUserModal = () => {
+            document.getElementById('user-modal').classList.remove('active');
+            showAlert('create-alert', '', false);
+        };
+
+        window.handleCreateUser = async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('new-name').value.trim();
+            const userid = document.getElementById('new-userid').value.trim().toLowerCase();
+            const email = document.getElementById('new-email').value.trim();
+            const password = document.getElementById('new-password').value;
+            const role = document.getElementById('new-role').value;
+            const color = selectedAvatarColor;
+            const btn = document.getElementById('create-btn');
+
+            btn.disabled = true; btn.textContent = 'Creating...';
+            showAlert('create-alert', '', false);
+
+            try {
+                // 检查 User ID 是否已占用
+                const existingSnap = await get(ref(db, 'usernames/' + userid));
+                if (existingSnap.exists()) {
+                    throw new Error(`User ID "${userid}" is already taken. Please choose another.`);
+                }
+
+                // 使用副App注册，避免把主App的当前用户顶下线
+                const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+                const newUid = userCredential.user.uid;
+
+                // 存入 users 节点（含头像颜色 & userid）
+                await set(ref(db, 'users/' + newUid), {
+                    name, email, userid, role, color, createdAt: new Date().toISOString()
+                });
+
+                // 存入 usernames 节点（用于登录查找）
+                await set(ref(db, 'usernames/' + userid), email);
+
+                // 将副App产生的新登录状态注销
+                await signOut(secondaryAuth);
+
+                // 刷新 usersMap
+                await loadAllUsers();
+
+                showAlert('create-alert', `✅ Account for "${name}" (ID: ${userid}) created!`, 'success');
+                e.target.reset();
+                // 重置预览
+                selectedAvatarColor = AVATAR_COLORS[0];
+                initColorSwatches();
+                updateAvatarPreview();
+            } catch (error) {
+                showAlert('create-alert', error.message, 'error');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Create Account';
+            }
+        };
+
+        // ==================
+        // 3. 任务日历逻辑
+        // ==================
+        function loadCalendarTasks() {
+            const tasksRef = ref(db, 'tasksData');
+            onValue(tasksRef, (snapshot) => {
+                tasksData = snapshot.val() || {};
+                renderCalendar();
+                // 如果任务弹窗开着，同步刷新弹窗里的列表
+                if (document.getElementById('task-modal').classList.contains('active')) {
+                    renderTaskList();
+                }
+            });
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('current-title').textContent = `${MONTH_NAMES[month]} ${year}`;
+
+            const daysEl = document.getElementById('calendar-days');
+            daysEl.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+            for (let i = 0; i < startOffset; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell empty';
+                daysEl.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const cell = document.createElement('div');
+                cell.className = 'day-cell';
+                if (isCurrentMonth && day === today.getDate()) cell.classList.add('today');
+                cell.onclick = () => openTaskModal(dateStr);
+
+                const dayNum = document.createElement('div');
+                dayNum.className = 'day-number';
+                dayNum.textContent = day;
+                cell.appendChild(dayNum);
+
+                const dayTasks = tasksData[dateStr] || [];
+                if (dayTasks.length > 0) {
+                    const iconsContainer = document.createElement('div');
+                    iconsContainer.className = 'task-icons';
+                    dayTasks.slice(0, 5).forEach(task => {
+                        const config = TASK_TYPES[task.type] || TASK_TYPES['Work'];
+                        // 对于 Work 类型：显示用户Logo；其他类型：显示图标
+                        if (task.type === 'Work' && task.createdBy && usersMap[task.createdBy]) {
+                            const u = usersMap[task.createdBy];
+                            const logoSpan = document.createElement('span');
+                            logoSpan.className = 'user-logo';
+                            logoSpan.style.background = u.color;
+                            logoSpan.title = `${escapeHTML(task.title)} (${escapeHTML(u.name)})`;
+                            logoSpan.textContent = u.initials;
+                            iconsContainer.appendChild(logoSpan);
+                        } else {
+                            const iconSpan = document.createElement('span');
+                            iconSpan.className = 'task-icon';
+                            iconSpan.style.color = config.color;
+                            iconSpan.innerHTML = config.icon;
+                            iconSpan.title = task.title;
+                            iconsContainer.appendChild(iconSpan);
+                        }
+                    });
+                    cell.appendChild(iconsContainer);
+                }
+                daysEl.appendChild(cell);
+            }
+            renderSidebar(year, month);
+        }
+
+        function renderSidebar(year, month) {
+            const listEl = document.getElementById('sidebar-list');
+            listEl.innerHTML = '';
+            let filteredDates = Object.keys(tasksData).filter(dateStr => {
+                const [y, m] = dateStr.split('-');
+                return parseInt(y) === year && parseInt(m) - 1 === month;
+            }).sort((a, b) => new Date(a) - new Date(b));
+
+            let taskCount = 0;
+            if (filteredDates.length === 0) {
+                listEl.innerHTML = '<div class="empty-text">No tasks this month.</div>';
+                document.getElementById('sidebar-count').textContent = '0 tasks';
+                return;
+            }
+
+            filteredDates.forEach(dateStr => {
+                const tasks = tasksData[dateStr];
+                const [y, m, d] = dateStr.split('-');
+                const displayDate = `${d}/${m}`;
+
+                const item = document.createElement('div');
+                item.className = 'sidebar-item';
+
+                let tasksHTML = '';
+                tasks.forEach((task, index) => {
+                    taskCount++;
+                    const config = TASK_TYPES[task.type] || TASK_TYPES['Work'];
+                    const isLast = index === tasks.length - 1;
+                    const borderStyle = isLast ? '' : 'border-bottom: 1px dashed var(--border-color); padding-bottom: 8px; margin-bottom: 8px;';
+                    // 全名长方形 pill（颜色同头像颜色，白色文字）
+                    const u = task.createdBy && usersMap[task.createdBy] ? usersMap[task.createdBy] : null;
+                    const namePillHTML = u
+                        ? `<span style="display:inline-flex;align-items:center;background:${u.color};color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:0.02em;white-space:nowrap;">${escapeHTML(u.name)}</span>`
+                        : '';
+                    tasksHTML += `
+                    <div style="display:flex;flex-direction:column;gap:3px;${borderStyle}">
+                        <span style="font-size:13px;font-weight:600;line-height:1.3;color:var(--text-main);">${escapeHTML(task.title)}</span>
+                        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                            ${namePillHTML}
+                            <span class="badge-type" style="color:${config.color};background-color:${config.color}1A;padding:2px 6px;font-size:10px;">
+                                ${config.icon} ${escapeHTML(task.type)}
+                            </span>
+                        </div>
+                    </div>`;
+                });
+
+                item.innerHTML = `<span class="sidebar-date">${displayDate}</span><div style="width:100%;">${tasksHTML}</div>`;
+                listEl.appendChild(item);
+            });
+            document.getElementById('sidebar-count').textContent = `${taskCount} task(s)`;
+        }
+
+        window.changeDate = (offset) => { currentDate.setMonth(currentDate.getMonth() + offset); renderCalendar(); };
+        window.goToToday = () => { currentDate = new Date(); renderCalendar(); };
+
+        window.openTaskModal = (dateStr) => {
+            selectedDateStr = dateStr;
+            document.getElementById('modal-date-title').textContent = `Tasks for ${dateStr}`;
+            document.getElementById('new-task-title').value = '';
+            renderTaskList();
+            document.getElementById('task-modal').classList.add('active');
+        };
+        window.closeTaskModal = () => document.getElementById('task-modal').classList.remove('active');
+
+        function renderTaskList() {
+            const listEl = document.getElementById('task-list');
+            listEl.innerHTML = '';
+            const dayTasks = tasksData[selectedDateStr] || [];
+
+            if (dayTasks.length === 0) {
+                listEl.innerHTML = '<div class="empty-text">No tasks for this day.</div>';
+                return;
+            }
+
+            dayTasks.forEach((task, index) => {
+                const config = TASK_TYPES[task.type] || TASK_TYPES['Work'];
+                const li = document.createElement('li');
+                li.className = 'task-item';
+
+                // 全名 pill（和侧边栏一样风格）
+                const u = task.createdBy && usersMap[task.createdBy] ? usersMap[task.createdBy] : null;
+                const namePillHTML = u
+                    ? `<span style="display:inline-flex;align-items:center;background:${u.color};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:0.02em;white-space:nowrap;">${escapeHTML(u.name)}</span>`
+                    : '';
+
+                // 权限判断：sadmin 可删所有人，其他只能删自己的
+                const isSadmin = currentUserData && currentUserData.role === 'sadmin';
+                const isOwner = task.createdBy === currentUser.uid;
+                const canDelete = isSadmin || isOwner;
+                const deleteBtn = canDelete
+                    ? `<button class="danger" onclick="deleteTask(${index})">Delete</button>`
+                    : '';
+
+                li.innerHTML = `
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    <span style="font-weight:600;font-size:14px;">${escapeHTML(task.title)}</span>
+                    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                        ${namePillHTML}
+                        <span class="badge-type" style="color:${config.color};background-color:${config.color}1A;">
+                            ${config.icon} ${escapeHTML(task.type)}
+                        </span>
+                    </div>
+                </div>
+                ${deleteBtn}
+            `;
+                listEl.appendChild(li);
+            });
+        }
+
+        window.addTask = async () => {
+            const title = document.getElementById('new-task-title').value.trim();
+            const type = document.getElementById('new-task-type').value;
+            if (!title) { alert('Please enter a task name!'); return; }
+
+            if (!tasksData[selectedDateStr]) tasksData[selectedDateStr] = [];
+            tasksData[selectedDateStr].push({ title, type, createdBy: currentUser.uid });
+
+            await set(ref(db, 'tasksData'), tasksData);
+            document.getElementById('new-task-title').value = '';
+        };
+
+        window.deleteTask = async (index) => {
+            if (!tasksData[selectedDateStr]) return;
+            const task = tasksData[selectedDateStr][index];
+            const isSadmin = currentUserData && currentUserData.role === 'sadmin';
+            const isOwner = task && task.createdBy === currentUser.uid;
+            if (!isSadmin && !isOwner) {
+                alert('You can only delete your own tasks.');
+                return;
+            }
+            tasksData[selectedDateStr].splice(index, 1);
+            if (tasksData[selectedDateStr].length === 0) delete tasksData[selectedDateStr];
+            await set(ref(db, 'tasksData'), tasksData);
+        };
+
+        // 工具函数
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        function showAlert(id, msg, type) {
+            const el = document.getElementById(id);
+            if (!msg) { el.className = 'alert'; return; }
+            el.textContent = msg; el.className = `alert ${type}`;
+        }
+
+        // 点击背景关闭弹窗
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                    showAlert('create-alert', '', false);
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>
