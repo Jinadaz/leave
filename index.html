@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Calendar & Auth System</title>
+    <title>Task Calendar</title>
     <style>
         :root {
             /* Basic Theme */
@@ -350,8 +350,8 @@
         /* Top Navigation Bar */
         .top-nav {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 12px;
             max-width: 1200px;
             margin: 0 auto 24px auto;
             padding: 16px 24px;
@@ -359,6 +359,13 @@
             border-radius: var(--radius-lg);
             box-shadow: var(--shadow-md);
             border: 1px solid var(--border-color);
+        }
+
+        .top-nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
         }
 
         .user-profile {
@@ -375,6 +382,71 @@
             background: var(--primary-light);
             color: var(--primary-color);
             text-transform: uppercase;
+        }
+
+        /* User Filter Bar */
+        .user-filter-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-wrap: wrap;
+            width: 100%;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-group-types {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .user-filter-bar-label {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            flex-shrink: 0;
+            margin-right: 2px;
+        }
+
+        .user-filter-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            user-select: none;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            transition: opacity 0.18s ease, transform 0.15s ease;
+            border: 2px solid transparent;
+        }
+
+        .user-filter-pill:hover {
+            transform: translateY(-1px);
+            opacity: 0.85;
+        }
+
+        .user-filter-pill.hidden-user {
+            opacity: 0.32;
+            background: #94a3b8 !important;
+            border-color: #94a3b8;
+            transform: none;
+            text-decoration: line-through;
         }
 
         /* Calendar Grid */
@@ -750,6 +822,170 @@
                 max-height: 400px;
             }
         }
+
+        /* ===== Year View ===== */
+        .year-view {
+            display: none;
+        }
+
+        .year-view.active {
+            display: block;
+        }
+
+        .month-view.hidden-view {
+            display: none;
+        }
+
+        .year-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 900px) {
+            .year-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .year-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .mini-month-card {
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 10px;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mini-month-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px var(--primary-light), var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .mini-month-card.current-month {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%);
+        }
+
+        .mini-month-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .mini-month-card.current-month .mini-month-title {
+            color: var(--primary-color);
+        }
+
+        .mini-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+
+        .mini-cal-header {
+            font-size: 8px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 2px 0;
+        }
+
+        .mini-cal-header.sat {
+            color: #2563eb;
+        }
+
+        .mini-cal-header.sun {
+            color: #ef4444;
+        }
+
+        .mini-cal-day {
+            font-size: 9px;
+            text-align: center;
+            padding: 2px 1px;
+            border-radius: 3px;
+            color: var(--text-muted);
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .mini-cal-day.has-task::after {
+            content: '';
+            display: block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            margin: 1px auto 0;
+        }
+
+        .mini-cal-day.has-holiday {
+            background: #f2948a;
+            border-radius: 3px;
+            color: #7f1d1d;
+            font-weight: 700;
+        }
+
+        .mini-cal-day.has-holiday::after {
+            display: none;
+        }
+
+        .mini-cal-day.today-dot {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            font-weight: 700;
+            border-radius: 3px;
+        }
+
+        .mini-task-summary {
+            margin-top: 8px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .mini-task-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* View toggle buttons */
+        .view-toggle {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .view-toggle button {
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .view-toggle button.active-view {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 
@@ -791,15 +1027,30 @@
 
         <!-- 顶部导航栏 (用户信息 & 操作) -->
         <div class="top-nav">
-            <div class="user-profile">
-                <span id="welcome-name" style="font-weight: 600; font-size: 16px;">Loading...</span>
-                <span id="welcome-role" class="role-badge">ROLE</span>
+            <!-- 第一行：用户信息 + 操作按钮 -->
+            <div class="top-nav-row">
+                <div class="user-profile">
+                    <span id="welcome-name" style="font-weight: 600; font-size: 16px;">Loading...</span>
+                    <span id="welcome-role" class="role-badge">ROLE</span>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <!-- 只有 SADMIN 才能看到这个按钮 -->
+                    <button id="btn-create-account" class="primary hidden" onclick="openCreateUserModal()">+ Create
+                        Account</button>
+                    <button class="danger" onclick="handleLogout()">Log Out</button>
+                </div>
             </div>
-            <div style="display: flex; gap: 12px;">
-                <!-- 只有 SADMIN 才能看到这个按钮 -->
-                <button id="btn-create-account" class="primary hidden" onclick="openCreateUserModal()">+ Create
-                    Account</button>
-                <button class="danger" onclick="handleLogout()">Log Out</button>
+            <!-- 第二行：用户过滤器 -->
+            <div class="user-filter-bar" id="user-filter-bar">
+                <!-- 左侧：用户 pills -->
+                <div class="filter-group" id="filter-group-users">
+                    <span class="user-filter-bar-label">Show / Hide:</span>
+                    <!-- pills 由 JS 动态生成 -->
+                </div>
+                <!-- 右侧：任务类型 pills -->
+                <div class="filter-group filter-group-types" id="filter-group-types">
+                    <!-- type pills 由 JS 动态生成 -->
+                </div>
             </div>
         </div>
 
@@ -809,21 +1060,33 @@
                 <div class="header">
                     <h1 id="current-title">March 2026</h1>
                     <div class="controls">
-                        <button onclick="changeDate(-1)">Prev</button>
-                        <button onclick="changeDate(1)">Next</button>
-                        <button class="primary" onclick="goToToday()">This Month</button>
+                        <div class="view-toggle">
+                            <button id="btn-month-view" class="active-view" onclick="switchView('month')">Month</button>
+                            <button id="btn-year-view" onclick="switchView('year')">Year</button>
+                        </div>
+                        <button id="btn-prev" onclick="changeDate(-1)">Prev</button>
+                        <button id="btn-next" onclick="changeDate(1)">Next</button>
+                        <button class="primary" onclick="goToToday()">Today</button>
                     </div>
                 </div>
 
-                <div class="month-grid">
-                    <div class="weekday-header">Mon</div>
-                    <div class="weekday-header">Tue</div>
-                    <div class="weekday-header">Wed</div>
-                    <div class="weekday-header">Thu</div>
-                    <div class="weekday-header">Fri</div>
-                    <div class="weekday-header">Sat</div>
-                    <div class="weekday-header">Sun</div>
-                    <div id="calendar-days" style="display: contents;"></div>
+                <!-- Month View -->
+                <div class="month-view" id="month-view">
+                    <div class="month-grid">
+                        <div class="weekday-header">Mon</div>
+                        <div class="weekday-header">Tue</div>
+                        <div class="weekday-header">Wed</div>
+                        <div class="weekday-header">Thu</div>
+                        <div class="weekday-header">Fri</div>
+                        <div class="weekday-header" style="color:#2563eb;">Sat</div>
+                        <div class="weekday-header" style="color:#ef4444;">Sun</div>
+                        <div id="calendar-days" style="display: contents;"></div>
+                    </div>
+                </div>
+
+                <!-- Year View -->
+                <div class="year-view" id="year-view">
+                    <div class="year-grid" id="year-grid"></div>
                 </div>
             </div>
 
@@ -943,6 +1206,9 @@
         let usersMap = {};   // uid -> { name, initials, color }
         let currentDate = new Date();
         let selectedDateStr = '';
+        let hiddenUsers = new Set(); // uid set for filter
+        let hiddenTypes = new Set(); // task type set for filter
+        let currentView = 'month'; // 'month' | 'year'
 
         // 为用户生成固定颜色（基于uid字符串hash）
         const USER_COLORS = [
@@ -969,7 +1235,7 @@
         // 日历相关配置
         const TASK_TYPES = {
             'Work': { color: '#0284c7', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>` },
-            'Alert': { color: '#ea580c', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>` },
+            'Alert': { color: '#ea580c', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-megaphone-icon lucide-megaphone"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"/><path d="M8 6v8"/></svg>` },
             'Public Holiday': { color: '#ef4444', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>` },
             'On leave': { color: '#10b981', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>` }
         };
@@ -1006,6 +1272,8 @@
 
                 // 加载所有用户到 usersMap
                 await loadAllUsers();
+                renderUserFilterBar();
+                renderTypeFilterPills();
 
                 // 开始实时监听日历任务数据
                 loadCalendarTasks();
@@ -1033,11 +1301,103 @@
                             name: data.name || data.email || uid,
                             initials: getInitials(data.name || data.email || uid),
                             // 优先使用数据库存储的颜色，否则自动hash
-                            color: data.color || getUserColor(uid)
+                            color: data.color || getUserColor(uid),
+                            role: data.role || 'user'
                         };
                     });
                 }
             } catch (e) { console.warn('Could not load users:', e); }
+        }
+
+        // 渲染任务类型过滤 pills
+        function renderTypeFilterPills() {
+            const group = document.getElementById('filter-group-types');
+            group.innerHTML = '';
+            const types = Object.keys(TASK_TYPES);
+            types.forEach(type => {
+                const config = TASK_TYPES[type];
+                const pill = document.createElement('span');
+                pill.className = 'user-filter-pill';
+                pill.style.background = config.color;
+                pill.style.display = 'inline-flex';
+                pill.style.alignItems = 'center';
+                pill.style.gap = '4px';
+
+                // 图标
+                const iconWrap = document.createElement('span');
+                iconWrap.className = 'task-icon';
+                iconWrap.style.width = '12px';
+                iconWrap.style.height = '12px';
+                iconWrap.style.color = '#fff';
+                iconWrap.innerHTML = config.icon;
+                pill.appendChild(iconWrap);
+
+                // 文字
+                const label = document.createElement('span');
+                label.textContent = type;
+                pill.appendChild(label);
+
+                if (hiddenTypes.has(type)) pill.classList.add('hidden-user');
+
+                pill.addEventListener('click', () => {
+                    if (hiddenTypes.has(type)) {
+                        hiddenTypes.delete(type);
+                        pill.classList.remove('hidden-user');
+                        pill.style.background = config.color;
+                    } else {
+                        hiddenTypes.add(type);
+                        pill.classList.add('hidden-user');
+                    }
+                    renderCalendar();
+                });
+
+                group.appendChild(pill);
+            });
+        }
+
+        // 渲染顶部用户过滤器 pills
+        function renderUserFilterBar() {
+            const bar = document.getElementById('user-filter-bar');
+            const groupLeft = document.getElementById('filter-group-users');
+            // 清除用户 pills（保留 label）
+            Array.from(groupLeft.children).forEach(c => {
+                if (!c.classList.contains('user-filter-bar-label')) c.remove();
+            });
+
+            const uids = Object.keys(usersMap);
+            if (uids.length === 0) {
+                bar.style.display = 'none';
+                return;
+            }
+            bar.style.display = 'flex';
+
+            const isSadminViewer = currentUserData && currentUserData.role === 'sadmin';
+
+            uids.forEach(uid => {
+                const u = usersMap[uid];
+                // 非 sadmin 不显示 sadmin 用户的 pill
+                if (!isSadminViewer && u.role === 'sadmin') return;
+                const pill = document.createElement('span');
+                pill.className = 'user-filter-pill';
+                pill.style.background = u.color;
+                pill.dataset.uid = uid;
+                pill.textContent = u.name;
+                if (hiddenUsers.has(uid)) pill.classList.add('hidden-user');
+
+                pill.addEventListener('click', () => {
+                    if (hiddenUsers.has(uid)) {
+                        hiddenUsers.delete(uid);
+                        pill.classList.remove('hidden-user');
+                        pill.style.background = u.color;
+                    } else {
+                        hiddenUsers.add(uid);
+                        pill.classList.add('hidden-user');
+                    }
+                    renderCalendar();
+                });
+
+                groupLeft.appendChild(pill);
+            });
         }
 
         // ==================
@@ -1202,7 +1562,19 @@
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
+
+            if (currentView === 'year') {
+                document.getElementById('current-title').textContent = `${year}`;
+                document.getElementById('month-view').classList.add('hidden-view');
+                document.getElementById('year-view').classList.add('active');
+                renderYearView(year);
+                return;
+            }
+
+            // Month view
             document.getElementById('current-title').textContent = `${MONTH_NAMES[month]} ${year}`;
+            document.getElementById('month-view').classList.remove('hidden-view');
+            document.getElementById('year-view').classList.remove('active');
 
             const daysEl = document.getElementById('calendar-days');
             daysEl.innerHTML = '';
@@ -1231,13 +1603,25 @@
                 dayNum.textContent = day;
                 cell.appendChild(dayNum);
 
-                const dayTasks = tasksData[dateStr] || [];
+                const dayTasks = (tasksData[dateStr] || []).filter(task =>
+                    !hiddenUsers.has(task.createdBy) && !hiddenTypes.has(task.type)
+                );
+
+                // 检测是否含有 Public Holiday 任务（且 Public Holiday 类型未被过滤）
+                const allDayTasks = tasksData[dateStr] || [];
+                const hasHoliday = !hiddenTypes.has('Public Holiday') &&
+                    allDayTasks.some(t => t.type === 'Public Holiday');
+                if (hasHoliday) {
+                    cell.style.background = '#f2948a';
+                    cell.style.borderColor = '#f2948a';
+                }
+
                 if (dayTasks.length > 0) {
                     const iconsContainer = document.createElement('div');
                     iconsContainer.className = 'task-icons';
                     dayTasks.slice(0, 5).forEach(task => {
                         const config = TASK_TYPES[task.type] || TASK_TYPES['Work'];
-                        // 对于 Work 类型：显示用户Logo；其他类型：显示图标
+                        // 对于 Work 类型：显示用户Logo；On leave 类型：杯子显示用户颜色；其他类型：显示图标
                         if (task.type === 'Work' && task.createdBy && usersMap[task.createdBy]) {
                             const u = usersMap[task.createdBy];
                             const logoSpan = document.createElement('span');
@@ -1246,10 +1630,18 @@
                             logoSpan.title = `${escapeHTML(task.title)} (${escapeHTML(u.name)})`;
                             logoSpan.textContent = u.initials;
                             iconsContainer.appendChild(logoSpan);
+                        } else if (task.type === 'On leave' && task.createdBy && usersMap[task.createdBy]) {
+                            const u = usersMap[task.createdBy];
+                            const iconSpan = document.createElement('span');
+                            iconSpan.className = 'task-icon';
+                            iconSpan.style.color = u.color;
+                            iconSpan.innerHTML = config.icon;
+                            iconSpan.title = `${escapeHTML(task.title)} (${escapeHTML(u.name)})`;
+                            iconsContainer.appendChild(iconSpan);
                         } else {
                             const iconSpan = document.createElement('span');
                             iconSpan.className = 'task-icon';
-                            iconSpan.style.color = config.color;
+                            iconSpan.style.color = task.type === 'Public Holiday' ? 'transparent' : config.color;
                             iconSpan.innerHTML = config.icon;
                             iconSpan.title = task.title;
                             iconsContainer.appendChild(iconSpan);
@@ -1277,8 +1669,13 @@
                 return;
             }
 
+            let hasAnyVisible = false;
             filteredDates.forEach(dateStr => {
-                const tasks = tasksData[dateStr];
+                const tasks = (tasksData[dateStr] || []).filter(task =>
+                    !hiddenUsers.has(task.createdBy) && !hiddenTypes.has(task.type)
+                );
+                if (tasks.length === 0) return;
+                hasAnyVisible = true;
                 const [y, m, d] = dateStr.split('-');
                 const displayDate = `${d}/${m}`;
 
@@ -1311,11 +1708,120 @@
                 item.innerHTML = `<span class="sidebar-date">${displayDate}</span><div style="width:100%;">${tasksHTML}</div>`;
                 listEl.appendChild(item);
             });
+            if (!hasAnyVisible) {
+                listEl.innerHTML = '<div class="empty-text">No tasks this month.</div>';
+                document.getElementById('sidebar-count').textContent = '0 tasks';
+                return;
+            }
             document.getElementById('sidebar-count').textContent = `${taskCount} task(s)`;
         }
 
-        window.changeDate = (offset) => { currentDate.setMonth(currentDate.getMonth() + offset); renderCalendar(); };
-        window.goToToday = () => { currentDate = new Date(); renderCalendar(); };
+        // ==================
+        // View switching
+        // ==================
+        window.switchView = (view) => {
+            currentView = view;
+            document.getElementById('btn-month-view').classList.toggle('active-view', view === 'month');
+            document.getElementById('btn-year-view').classList.toggle('active-view', view === 'year');
+            renderCalendar();
+        };
+
+        window.changeDate = (offset) => {
+            if (currentView === 'year') {
+                currentDate.setFullYear(currentDate.getFullYear() + offset);
+            } else {
+                currentDate.setMonth(currentDate.getMonth() + offset);
+            }
+            renderCalendar();
+        };
+
+        window.goToToday = () => {
+            currentDate = new Date();
+            if (currentView === 'year') {
+                renderCalendar();
+            } else {
+                renderCalendar();
+            }
+        };
+
+        // ==================
+        // Year View renderer
+        // ==================
+        function renderYearView(year) {
+            const grid = document.getElementById('year-grid');
+            grid.innerHTML = '';
+            const today = new Date();
+
+            for (let m = 0; m < 12; m++) {
+                const card = document.createElement('div');
+                card.className = 'mini-month-card';
+                const isCurrentMonth = today.getFullYear() === year && today.getMonth() === m;
+                if (isCurrentMonth) card.classList.add('current-month');
+
+                // Month name
+                const title = document.createElement('div');
+                title.className = 'mini-month-title';
+                title.textContent = MONTH_NAMES[m];
+                card.appendChild(title);
+
+                // Mini calendar grid
+                const calGrid = document.createElement('div');
+                calGrid.className = 'mini-cal-grid';
+
+                // Weekday headers
+                ['M', 'T', 'W', 'T', 'F', 'S', 'S'].forEach((d, i) => {
+                    const h = document.createElement('div');
+                    h.className = 'mini-cal-header' + (i === 5 ? ' sat' : i === 6 ? ' sun' : '');
+                    h.textContent = d;
+                    calGrid.appendChild(h);
+                });
+
+                // Day cells
+                const firstDay = new Date(year, m, 1).getDay();
+                const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+                const daysInMonth = new Date(year, m + 1, 0).getDate();
+
+                for (let i = 0; i < startOffset; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'mini-cal-day';
+                    calGrid.appendChild(empty);
+                }
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = `${year}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'mini-cal-day';
+                    dayEl.textContent = day;
+
+                    const dayTasks = tasksData[dateStr] || [];
+                    const visibleTasks = dayTasks.filter(t =>
+                        !hiddenUsers.has(t.createdBy) && !hiddenTypes.has(t.type)
+                    );
+                    const hasHoliday = !hiddenTypes.has('Public Holiday') &&
+                        dayTasks.some(t => t.type === 'Public Holiday');
+
+                    if (hasHoliday) {
+                        dayEl.classList.add('has-holiday');
+                    } else if (visibleTasks.length > 0) {
+                        dayEl.classList.add('has-task');
+                    }
+                    if (isCurrentMonth && day === today.getDate()) {
+                        dayEl.classList.add('today-dot');
+                    }
+                    calGrid.appendChild(dayEl);
+                }
+
+                card.appendChild(calGrid);
+
+                // Click to jump to this month
+                card.addEventListener('click', () => {
+                    currentDate = new Date(year, m, 1);
+                    switchView('month');
+                });
+
+                grid.appendChild(card);
+            }
+        }
 
         window.openTaskModal = (dateStr) => {
             selectedDateStr = dateStr;
