@@ -733,14 +733,271 @@
             margin-bottom: 10px;
         }
 
+        /* ===== Add Task Form (redesigned) ===== */
+        .add-task-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 18px;
+            margin-top: 4px;
+        }
+
+        .add-task-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
         .add-task-form {
             display: flex;
+            flex-direction: column;
             gap: 10px;
+            background: var(--bg-color);
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .add-task-form:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .add-task-form input[type="text"] {
+            width: 100%;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            color: var(--text-main);
+            font-weight: 500;
+            padding: 2px 0;
+        }
+
+        .add-task-form input[type="text"]::placeholder {
+            color: #a0aec0;
+            font-weight: 400;
+        }
+
+        .add-task-form-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .task-type-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .task-type-selector select {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .type-color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .add-task-submit-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+        }
+
+        .add-task-submit-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4);
+        }
+
+        /* ===== Edit Task Inline ===== */
+        .task-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+
+        .task-item.editing {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+        }
+
+        .task-item-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-action-btns {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-edit-task {
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-edit-task:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .btn-delete-task {
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #fff0f3;
+            color: var(--danger-color);
+            border: 1px solid #fecdd3;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-delete-task:hover {
+            background: var(--danger-color);
+            color: white;
+            border-color: var(--danger-color);
+        }
+
+        .task-edit-form {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+            animation: slideDown 0.18s ease;
+        }
+
+        .task-item.editing .task-edit-form {
+            display: flex;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .task-edit-form input[type="text"] {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .task-edit-form input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .task-edit-form select {
+            padding: 7px 10px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            background: var(--card-bg);
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .task-edit-form-row {
+            display: flex;
+            gap: 8px;
             align-items: center;
         }
 
-        .add-task-form input {
+        .task-edit-form-row select {
             flex: 1;
+        }
+
+        .btn-save-task {
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-save-task:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-cancel-edit {
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--bg-color);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .btn-cancel-edit:hover {
+            background: var(--border-color);
+            color: var(--text-main);
         }
 
         .empty-text {
@@ -1109,15 +1366,24 @@
                 <button class="close-btn" onclick="closeTaskModal()">&times;</button>
             </div>
             <ul class="task-list" id="task-list"></ul>
-            <div class="add-task-form">
-                <input type="text" id="new-task-title" placeholder="Enter task name...">
-                <select id="new-task-type">
-                    <option value="Work">Work</option>
-                    <option value="Alert">Alert</option>
-                    <option value="Public Holiday">Public Holiday</option>
-                    <option value="On leave">On leave</option>
-                </select>
-                <button class="primary" onclick="addTask()">Add</button>
+            <!-- Redesigned Add Task Area -->
+            <div class="add-task-section">
+                <div class="add-task-section-label">Add New Task</div>
+                <div class="add-task-form" id="add-task-form">
+                    <input type="text" id="new-task-title" placeholder="What needs to be done?" autocomplete="off">
+                    <div class="add-task-form-row">
+                        <div class="task-type-selector">
+                            <span class="type-color-dot" id="type-color-dot" style="background:#0284c7;"></span>
+                            <select id="new-task-type" onchange="updateTypeColorDot()">
+                                <option value="Work">Work</option>
+                                <option value="Alert">Alert</option>
+                                <option value="Public Holiday">Public Holiday</option>
+                                <option value="On leave">On leave</option>
+                            </select>
+                        </div>
+                        <button class="add-task-submit-btn" onclick="addTask()">+ Add Task</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1847,46 +2113,134 @@
                 const li = document.createElement('li');
                 li.className = 'task-item';
 
-                // 全名 pill（和侧边栏一样风格）
+                // 全名 pill
                 const u = task.createdBy && usersMap[task.createdBy] ? usersMap[task.createdBy] : null;
                 const namePillHTML = u
                     ? `<span style="display:inline-flex;align-items:center;background:${u.color};color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:0.02em;white-space:nowrap;">${escapeHTML(u.name)}</span>`
                     : '';
 
-                // 权限判断：sadmin 可删所有人，其他只能删自己的
+                // 权限判断：sadmin 可编辑/删除所有人，其他只能操作自己的
                 const isSadmin = currentUserData && currentUserData.role === 'sadmin';
                 const isOwner = task.createdBy === currentUser.uid;
+                const canEdit = isSadmin || isOwner;
                 const canDelete = isSadmin || isOwner;
+
+                const editBtn = canEdit
+                    ? `<button class="btn-edit-task" onclick="toggleEditTask(${index}, this)">✏️ Edit</button>`
+                    : '';
                 const deleteBtn = canDelete
-                    ? `<button class="danger" onclick="deleteTask(${index})">Delete</button>`
+                    ? `<button class="btn-delete-task" onclick="deleteTask(${index})">🗑 Delete</button>`
                     : '';
 
+                // Build type options for edit select
+                const typeOptions = Object.keys(TASK_TYPES).map(t =>
+                    `<option value="${t}" ${t === task.type ? 'selected' : ''}>${t}</option>`
+                ).join('');
+
                 li.innerHTML = `
-                <div style="display:flex;flex-direction:column;gap:5px;">
-                    <span style="font-weight:600;font-size:14px;">${escapeHTML(task.title)}</span>
-                    <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                        ${namePillHTML}
-                        <span class="badge-type" style="color:${config.color};background-color:${config.color}1A;">
-                            ${config.icon} ${escapeHTML(task.type)}
-                        </span>
+                <div class="task-item-main">
+                    <div style="display:flex;flex-direction:column;gap:5px;min-width:0;">
+                        <span style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHTML(task.title)}</span>
+                        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                            ${namePillHTML}
+                            <span class="badge-type" style="color:${config.color};background-color:${config.color}1A;">
+                                ${config.icon} ${escapeHTML(task.type)}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="task-action-btns">
+                        ${editBtn}
+                        ${deleteBtn}
                     </div>
                 </div>
-                ${deleteBtn}
+                <div class="task-edit-form" id="edit-form-${index}">
+                    <input type="text" id="edit-title-${index}" value="${escapeHTML(task.title)}" placeholder="Task name...">
+                    <div class="task-edit-form-row">
+                        <select id="edit-type-${index}">${typeOptions}</select>
+                        <button class="btn-save-task" onclick="saveEditTask(${index})">✓ Save</button>
+                        <button class="btn-cancel-edit" onclick="cancelEditTask(${index})">Cancel</button>
+                    </div>
+                </div>
             `;
                 listEl.appendChild(li);
             });
         }
 
-        window.addTask = async () => {
-            const title = document.getElementById('new-task-title').value.trim();
+        window.toggleEditTask = (index, btn) => {
+            const allItems = document.querySelectorAll('.task-item');
+            // Close other open edit forms first
+            allItems.forEach((item, i) => {
+                if (i !== index) {
+                    item.classList.remove('editing');
+                    const editBtn = item.querySelector('.btn-edit-task');
+                    if (editBtn) editBtn.textContent = '✏️ Edit';
+                }
+            });
+            const li = btn.closest('.task-item');
+            const isEditing = li.classList.toggle('editing');
+            btn.textContent = isEditing ? '✕ Close' : '✏️ Edit';
+            if (isEditing) {
+                const input = document.getElementById(`edit-title-${index}`);
+                if (input) { input.focus(); input.select(); }
+            }
+        };
+
+        window.cancelEditTask = (index) => {
+            const form = document.getElementById(`edit-form-${index}`);
+            if (!form) return;
+            const li = form.closest('.task-item');
+            li.classList.remove('editing');
+            const editBtn = li.querySelector('.btn-edit-task');
+            if (editBtn) editBtn.textContent = '✏️ Edit';
+        };
+
+        window.saveEditTask = async (index) => {
+            const newTitle = document.getElementById(`edit-title-${index}`).value.trim();
+            const newType = document.getElementById(`edit-type-${index}`).value;
+            if (!newTitle) { alert('Task name cannot be empty!'); return; }
+
+            const tasks = tasksData[selectedDateStr];
+            if (!tasks || !tasks[index]) return;
+
+            // Permission check
+            const task = tasks[index];
+            const isSadmin = currentUserData && currentUserData.role === 'sadmin';
+            const isOwner = task.createdBy === currentUser.uid;
+            if (!isSadmin && !isOwner) {
+                alert('You can only edit your own tasks.');
+                return;
+            }
+
+            tasks[index] = { ...task, title: newTitle, type: newType };
+            await set(ref(db, 'tasksData'), tasksData);
+            // renderTaskList() will be called via onValue
+        };
+
+        // Update the color dot next to type selector
+        window.updateTypeColorDot = () => {
             const type = document.getElementById('new-task-type').value;
-            if (!title) { alert('Please enter a task name!'); return; }
+            const config = TASK_TYPES[type];
+            const dot = document.getElementById('type-color-dot');
+            if (dot && config) dot.style.background = config.color;
+        };
+
+        window.addTask = async () => {
+            const titleInput = document.getElementById('new-task-title');
+            const title = titleInput.value.trim();
+            const type = document.getElementById('new-task-type').value;
+            if (!title) {
+                titleInput.focus();
+                titleInput.style.borderBottom = '2px solid var(--danger-color)';
+                setTimeout(() => titleInput.style.borderBottom = '', 1500);
+                return;
+            }
 
             if (!tasksData[selectedDateStr]) tasksData[selectedDateStr] = [];
             tasksData[selectedDateStr].push({ title, type, createdBy: currentUser.uid });
 
             await set(ref(db, 'tasksData'), tasksData);
-            document.getElementById('new-task-title').value = '';
+            titleInput.value = '';
+            titleInput.focus();
         };
 
         window.deleteTask = async (index) => {
