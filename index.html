@@ -1247,6 +1247,22 @@
             color: #fff;
             border-color: var(--primary-color);
         }
+
+        @keyframes smoothFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: smoothFadeIn 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
     </style>
 </head>
 
@@ -1481,6 +1497,14 @@
         let selectedUsers = new Set(); // if empty, means all are shown
         let selectedTypes = new Set(); // if empty, means all are shown
         let currentView = 'month'; // 'month' | 'year'
+
+        function triggerAnimation(elId) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.classList.remove('animate-fade-in');
+            void el.offsetWidth; // trigger reflow to restart animation
+            el.classList.add('animate-fade-in');
+        }
 
         // 为用户生成固定颜色（基于uid字符串hash）
         const USER_COLORS = [
@@ -1865,6 +1889,7 @@
                 document.getElementById('current-title').textContent = `${year}`;
                 document.getElementById('month-view').classList.add('hidden-view');
                 document.getElementById('year-view').classList.add('active');
+                triggerAnimation('year-view');
                 renderYearView(year);
                 return;
             }
@@ -1873,6 +1898,7 @@
             document.getElementById('current-title').textContent = `${MONTH_NAMES[month]} ${year}`;
             document.getElementById('month-view').classList.remove('hidden-view');
             document.getElementById('year-view').classList.remove('active');
+            triggerAnimation('month-view');
 
             const daysEl = document.getElementById('calendar-days');
             daysEl.innerHTML = '';
@@ -1954,6 +1980,7 @@
         }
 
         function renderSidebar(year, month) {
+            triggerAnimation('sidebar-list');
             const listEl = document.getElementById('sidebar-list');
             listEl.innerHTML = '';
             let filteredDates = Object.keys(tasksData).filter(dateStr => {
