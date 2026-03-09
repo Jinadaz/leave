@@ -441,12 +441,16 @@
             opacity: 0.85;
         }
 
-        .user-filter-pill.hidden-user {
-            opacity: 0.32;
-            background: #94a3b8 !important;
-            border-color: #94a3b8;
+        .user-filter-pill.inactive-pill {
+            background: #f1f5f9 !important;
+            color: #94a3b8 !important;
+            border-color: transparent !important;
+            opacity: 0.8;
             transform: none;
-            text-decoration: line-through;
+        }
+
+        .user-filter-pill.active-pill {
+            background-color: #fff !important;
         }
 
         /* Calendar Grid */
@@ -1379,6 +1383,8 @@
                                 <option value="Alert">Alert</option>
                                 <option value="Public Holiday">Public Holiday</option>
                                 <option value="On leave">On leave</option>
+                                <option value="Outstation">Outstation</option>
+                                <option value="Attend Training">Attend Training</option>
                             </select>
                         </div>
                         <button class="add-task-submit-btn" onclick="addTask()">+ Add Task</button>
@@ -1472,8 +1478,8 @@
         let usersMap = {};   // uid -> { name, initials, color }
         let currentDate = new Date();
         let selectedDateStr = '';
-        let hiddenUsers = new Set(); // uid set for filter
-        let hiddenTypes = new Set(); // task type set for filter
+        let selectedUsers = new Set(); // if empty, means all are shown
+        let selectedTypes = new Set(); // if empty, means all are shown
         let currentView = 'month'; // 'month' | 'year'
 
         // 为用户生成固定颜色（基于uid字符串hash）
@@ -1503,7 +1509,9 @@
             'Work': { color: '#0284c7', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>` },
             'Alert': { color: '#ea580c', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-megaphone-icon lucide-megaphone"><path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M6 14a12 12 0 0 0 2.4 7.2 2 2 0 0 0 3.2-2.4A8 8 0 0 1 10 14"/><path d="M8 6v8"/></svg>` },
             'Public Holiday': { color: '#ef4444', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>` },
-            'On leave': { color: '#10b981', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>` }
+            'On leave': { color: '#10b981', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>` },
+            'Outstation': { color: '#8b5cf6', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>` },
+            'Attend Training': { color: '#f59e0b', icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-book-open"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>` }
         };
         const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -1584,7 +1592,20 @@
                 const config = TASK_TYPES[type];
                 const pill = document.createElement('span');
                 pill.className = 'user-filter-pill';
-                pill.style.background = config.color;
+
+                if (selectedTypes.size === 0) {
+                    pill.style.background = config.color;
+                    pill.style.backgroundImage = 'none';
+                    pill.style.color = '#fff';
+                } else if (selectedTypes.has(type)) {
+                    pill.classList.add('active-pill');
+                    pill.style.color = config.color;
+                    const encodedColor = encodeURIComponent(config.color);
+                    pill.style.backgroundImage = `url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='5' stroke='${encodedColor}' stroke-width='4' stroke-dasharray='6%2c 6' stroke-dashoffset='0'%3E%3Canimate attributeName='stroke-dashoffset' values='12;0' dur='0.5s' repeatCount='indefinite' /%3E%3C/rect%3E%3C/svg%3E")`;
+                } else {
+                    pill.classList.add('inactive-pill');
+                }
+
                 pill.style.display = 'inline-flex';
                 pill.style.alignItems = 'center';
                 pill.style.gap = '4px';
@@ -1594,7 +1615,13 @@
                 iconWrap.className = 'task-icon';
                 iconWrap.style.width = '12px';
                 iconWrap.style.height = '12px';
-                iconWrap.style.color = '#fff';
+                if (selectedTypes.size === 0) {
+                    iconWrap.style.color = '#fff';
+                } else if (selectedTypes.has(type)) {
+                    iconWrap.style.color = config.color;
+                } else {
+                    iconWrap.style.color = '#94a3b8';
+                }
                 iconWrap.innerHTML = config.icon;
                 pill.appendChild(iconWrap);
 
@@ -1603,17 +1630,13 @@
                 label.textContent = type;
                 pill.appendChild(label);
 
-                if (hiddenTypes.has(type)) pill.classList.add('hidden-user');
-
                 pill.addEventListener('click', () => {
-                    if (hiddenTypes.has(type)) {
-                        hiddenTypes.delete(type);
-                        pill.classList.remove('hidden-user');
-                        pill.style.background = config.color;
+                    if (selectedTypes.has(type)) {
+                        selectedTypes.delete(type);
                     } else {
-                        hiddenTypes.add(type);
-                        pill.classList.add('hidden-user');
+                        selectedTypes.add(type);
                     }
+                    renderTypeFilterPills();
                     renderCalendar();
                 });
 
@@ -1645,20 +1668,29 @@
                 if (!isSadminViewer && u.role === 'sadmin') return;
                 const pill = document.createElement('span');
                 pill.className = 'user-filter-pill';
-                pill.style.background = u.color;
                 pill.dataset.uid = uid;
                 pill.textContent = u.name;
-                if (hiddenUsers.has(uid)) pill.classList.add('hidden-user');
+
+                if (selectedUsers.size === 0) {
+                    pill.style.background = u.color;
+                    pill.style.color = '#fff';
+                    pill.style.backgroundImage = 'none';
+                } else if (selectedUsers.has(uid)) {
+                    pill.classList.add('active-pill');
+                    pill.style.color = u.color;
+                    const encodedColor = encodeURIComponent(u.color);
+                    pill.style.backgroundImage = `url("data:image/svg+xml,%3Csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='100%25' height='100%25' fill='none' rx='5' stroke='${encodedColor}' stroke-width='4' stroke-dasharray='6%2c 6' stroke-dashoffset='0'%3E%3Canimate attributeName='stroke-dashoffset' values='12;0' dur='0.5s' repeatCount='indefinite' /%3E%3C/rect%3E%3C/svg%3E")`;
+                } else {
+                    pill.classList.add('inactive-pill');
+                }
 
                 pill.addEventListener('click', () => {
-                    if (hiddenUsers.has(uid)) {
-                        hiddenUsers.delete(uid);
-                        pill.classList.remove('hidden-user');
-                        pill.style.background = u.color;
+                    if (selectedUsers.has(uid)) {
+                        selectedUsers.delete(uid);
                     } else {
-                        hiddenUsers.add(uid);
-                        pill.classList.add('hidden-user');
+                        selectedUsers.add(uid);
                     }
+                    renderUserFilterBar();
                     renderCalendar();
                 });
 
@@ -1870,13 +1902,14 @@
                 cell.appendChild(dayNum);
 
                 const dayTasks = (tasksData[dateStr] || []).filter(task =>
-                    !hiddenUsers.has(task.createdBy) && !hiddenTypes.has(task.type)
+                    (selectedUsers.size === 0 || selectedUsers.has(task.createdBy)) &&
+                    (selectedTypes.size === 0 || selectedTypes.has(task.type))
                 );
 
                 // 检测是否含有 Public Holiday 任务（且 Public Holiday 类型未被过滤）
                 const allDayTasks = tasksData[dateStr] || [];
-                const hasHoliday = !hiddenTypes.has('Public Holiday') &&
-                    allDayTasks.some(t => t.type === 'Public Holiday');
+                const hasHoliday = (selectedTypes.size === 0 || selectedTypes.has('Public Holiday')) &&
+                    allDayTasks.some(t => t.type === 'Public Holiday' && (selectedUsers.size === 0 || selectedUsers.has(t.createdBy)));
                 if (hasHoliday) {
                     cell.style.background = '#f2948a';
                     cell.style.borderColor = '#f2948a';
@@ -1896,7 +1929,7 @@
                             logoSpan.title = `${escapeHTML(task.title)} (${escapeHTML(u.name)})`;
                             logoSpan.textContent = u.initials;
                             iconsContainer.appendChild(logoSpan);
-                        } else if (task.type === 'On leave' && task.createdBy && usersMap[task.createdBy]) {
+                        } else if (['On leave', 'Outstation', 'Attend Training'].includes(task.type) && task.createdBy && usersMap[task.createdBy]) {
                             const u = usersMap[task.createdBy];
                             const iconSpan = document.createElement('span');
                             iconSpan.className = 'task-icon';
@@ -1938,7 +1971,8 @@
             let hasAnyVisible = false;
             filteredDates.forEach(dateStr => {
                 const tasks = (tasksData[dateStr] || []).filter(task =>
-                    !hiddenUsers.has(task.createdBy) && !hiddenTypes.has(task.type)
+                    (selectedUsers.size === 0 || selectedUsers.has(task.createdBy)) &&
+                    (selectedTypes.size === 0 || selectedTypes.has(task.type))
                 );
                 if (tasks.length === 0) return;
                 hasAnyVisible = true;
@@ -2061,10 +2095,11 @@
 
                     const dayTasks = tasksData[dateStr] || [];
                     const visibleTasks = dayTasks.filter(t =>
-                        !hiddenUsers.has(t.createdBy) && !hiddenTypes.has(t.type)
+                        (selectedUsers.size === 0 || selectedUsers.has(t.createdBy)) &&
+                        (selectedTypes.size === 0 || selectedTypes.has(t.type))
                     );
-                    const hasHoliday = !hiddenTypes.has('Public Holiday') &&
-                        dayTasks.some(t => t.type === 'Public Holiday');
+                    const hasHoliday = (selectedTypes.size === 0 || selectedTypes.has('Public Holiday')) &&
+                        dayTasks.some(t => t.type === 'Public Holiday' && (selectedUsers.size === 0 || selectedUsers.has(t.createdBy)));
 
                     if (hasHoliday) {
                         dayEl.classList.add('has-holiday');
